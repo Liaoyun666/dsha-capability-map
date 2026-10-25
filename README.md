@@ -198,7 +198,7 @@ CI 里可以直接用退出码当门禁。
 ## 开发
 
 ```bash
-npm test                    # 165 个测试，零依赖，不需要手机
+npm test                    # 199 个测试，零依赖，不需要手机
 npm run check               # 校验插件包契约（补丁文件 / 入口 / files / 依赖）
 node tools/mock-bridge.js 3091 healthy   # 起个假桥，手工试
 node tools/mock-bridge.js 3091 mixed     # 每类故障各来一条
