@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run tests (no install needed — zero dependencies)
+        run: node --test tests/*.test.js
+
+      - name: Verify plugin manifest contract
+        run: node tools/check-manifest.js
+
+      - name: CLI works against a fake bridge
+        run: |
+          node tools/mock-bridge.js 3091 healthy &
+          BRIDGE_PID=$!
+          trap 'kill $BRIDGE_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -sf -H 'X-Token: dev' http://127.0.0.1:3091/health >/dev/null; then break; fi
+            sleep 0.25
+          done
+          DSHA_BRIDGE_URL=http://127.0.0.1:3091 DSHA_BRIDGE_TOKEN=dev NO_COLOR=1 node tools/cli.js --json > snapshot.json
+          node -e "const s=require('./snapshot.json'); if (s.schemaVersion!==1) throw new Error('bad schema'); if (s.probes.length!==14) throw new Error('expected 14 probes, got '+s.probes.length); if (s.verdict!=='ok') throw new Error('expected ok, got '+s.verdict); console.log('snapshot ok:', s.headline)"
+          DSHA_BRIDGE_URL=http://127.0.0.1:3091 DSHA_BRIDGE_TOKEN=dev NO_COLOR=1 node tools/cli.js
+          rm -f snapshot.json

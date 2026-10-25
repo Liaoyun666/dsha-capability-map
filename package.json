@@ -1,0 +1,79 @@
+{
+  "name": "dsha-capability-map",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DSHA 设备能力地图：一条命令（或一个工具）问清这台安卓手机上 agent 到底能用哪些能力，逐项给出可用 / 未开启 / 未授权 / 时机不对 / 异常。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsha",
+    "android",
+    "capability",
+    "diagnostics"
+  ],
+  "license": "MIT",
+  "author": "Liaoyun666",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./probes": "./lib/probes.js",
+    "./report": "./lib/report.js",
+    "./bridge": "./lib/bridge.js"
+  },
+  "bin": {
+    "dsha-capability-map": "./tools/cli.js"
+  },
+  "files": [
+    "lib",
+    "tools",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node tools/check-manifest.js",
+    "scan": "node tools/cli.js",
+    "scan:json": "node tools/cli.js --json"
+  },
+  "dependencies": {},
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "dshhub": {
+      "schemaVersion": 1,
+      "displayName": "DSHA 设备能力地图",
+      "summary": "体检安卓手机上 agent 到底能用哪些设备能力，分清没开开关、没给权限、时机不对和真坏了。",
+      "categories": [
+        "diagnostics",
+        "android"
+      ],
+      "surfaces": [
+        "tool",
+        "cli"
+      ],
+      "capabilities": {
+        "provides": [
+          "dsha_capability_map",
+          "dsha_capability_json",
+          "dsha_capability_diff"
+        ],
+        "reads": [
+          "device bridge state"
+        ],
+        "network": [
+          "http://127.0.0.1:3090"
+        ]
+      },
+      "compatibility": {
+        "dsh": ">=0.1.5-rc.1",
+        "node": ">=20"
+      }
+    }
+  }
+}
